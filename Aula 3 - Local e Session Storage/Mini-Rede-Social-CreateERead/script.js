@@ -22,17 +22,31 @@ let posts = [
 
 // Inicialização
 window.onload = function() {
+    carregarPosts()
     displayPosts();
 
-    document.getElementById('postForm').addEventListener('submit', addPost); 
+    document.querySelector('#postForm').addEventListener('submit', addPost); 
+    document.querySelector('#postList').addEventListener('click', handleClick);
 };
 
-// Função para exibir os posts
+//função para ouvir clicks 
+function handleClick(event) {
+    const action = event.target.dataset.action;
+    const index = event.target.dataset.index;
+
+    if (action === "Editar") {
+        editarPost(index);
+    } else if (action === "Apagar") {
+        apagarPost(index);
+    }
+}
+
+// Create
 function displayPosts() {
-    const postList = document.getElementById('postList');
+    const postList = document.querySelector('#postList');
     postList.innerHTML = '';
 
-    posts.forEach(pegaPost => {
+    posts.forEach((pegaPost, index) => {
             const postElement = document.createElement('div');
             postElement.classList.add('card-post');
   
@@ -41,15 +55,15 @@ function displayPosts() {
                 ${pegaPost.image ? `<img src="${pegaPost.image}" alt="Imagem do post" style="max-width:150px;">` : ""}
                 <p><em>Categoria: ${pegaPost.category}</em></p>
                 <p><em>Data e Hora: ${pegaPost.date}</em></p>
-                <button><i class="fa-solid fa-pen-to-square"></i> Editar</button>
-                <button><i class="fa-solid fa-eraser"></i> Apagar</button>
+                <button data-action="Editar" data-index=${index}><i class="fa-solid fa-pen-to-square"></i> Editar</button>
+                <button data-action="Apagar" data-index=${index}><i class="fa-solid fa-eraser"></i> Apagar</button>
                 <hr style="margin:30px;">`;
                
             postList.append(postElement);
         });
 }
 
-// Função para adicionar um novo post
+// Read
 function addPost(event) {
     event.preventDefault();
     
@@ -66,8 +80,36 @@ function addPost(event) {
     };
     
     posts.unshift(post);
-    
-    document.getElementById('postForm').reset();
-    
+    salvarPosts();
+    document.querySelector('postForm').reset();
     displayPosts();
+}
+
+//Update
+function editarPost(index) {
+    const novoTexto = prompt("Edite o conteúdo do post", posts[index].text)
+    posts[index].text = novoTexto;
+    salvarPosts()
+    displayPosts();
+}
+
+//Delete
+function apagarPost(index) {
+    const confirmar = confirm("Você deseja excluir esse post?");
+    if (confirmar) {
+      posts.splice(index, 1);  
+      salvarPosts()
+    }
+    displayPosts();
+}
+
+function salvarPosts() {
+    localStorage.setItem("posts", JSON.stringify(posts))
+}
+
+function carregarPosts() {
+    const postsGuardados = localStorage.getItem("posts");
+    if (postsGuardados) {
+        posts = JSON.parse(postsGuardados);
+    }
 }
